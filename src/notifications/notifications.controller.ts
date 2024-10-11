@@ -1,9 +1,9 @@
 import { Controller, Post, Body } from '@nestjs/common';
-import { FirebaseService } from '../firebase/firebase.service';
+import { NotificationsService } from './notifications.service';
 
 @Controller('notifications')
 export class NotificationsController {
-  constructor(private readonly firebaseService: FirebaseService) {}
+  constructor(private readonly notificationsService: NotificationsService) {}
 
   @Post('send')
   async sendNotification(
@@ -13,7 +13,7 @@ export class NotificationsController {
     @Body('data') data: Record<string, string>
   ) {
     try {
-      const response = await this.firebaseService.sendNotification(token, title, body, data);
+      const response = await this.notificationsService.sendNotification(token, title, body, data);
       return { success: true, message: response };
     } catch (error) {
       return { success: false, message: error.message };

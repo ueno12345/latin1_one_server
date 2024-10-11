@@ -4,7 +4,7 @@ import * as path from 'path';
 import { readFile } from 'fs/promises';
 
 @Injectable()
-export class FirebaseService {
+export class NotificationsService {
   constructor() {
     this.initializeFirebase();
   }
