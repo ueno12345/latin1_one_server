@@ -28,7 +28,7 @@ export class NotificationsService {
   }
 
   // メッセージ内容を動的に受け取り、通知を送信
-  async sendNotification(
+  async sendWholeNotification(
     registrationToken: string,
     title: string,
     body: string,
@@ -42,6 +42,29 @@ export class NotificationsService {
         },
         data,
         token: registrationToken,
+      };
+
+      const response = await admin.messaging().send(message);
+      return response;
+    } catch (error) {
+      throw new Error(`Error sending message: ${error.message}`);
+    }
+  }
+
+  async sendIndividualNotification(
+    topic: string,
+    title: string,
+    body: string,
+    data: Record<string, string>
+  ): Promise<string> {
+    try {
+      const message: admin.messaging.Message = {
+        notification: {
+          title,
+          body,
+        },
+        data,
+        topic: topic,
       };
 
       const response = await admin.messaging().send(message);

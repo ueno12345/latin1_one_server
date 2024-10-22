@@ -3,11 +3,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { NotificationsController } from './notifications/notifications.controller';
 import { NotificationsService } from './notifications/notifications.service';
-import { InboxController } from './inbox/inbox.controller';
-import { InboxService } from './inbox/inbox.service';
+import { RegisterController } from './register/register.controller';
+import { RegisterService } from './register/register.service';
 @Module({
   imports: [],
-  controllers: [AppController, NotificationsController, InboxController],
-  providers: [AppService, NotificationsService, InboxService],
+  controllers: [AppController, NotificationsController, RegisterController],
+  providers: [AppService, NotificationsService, RegisterService],
 })
 export class AppModule {}
