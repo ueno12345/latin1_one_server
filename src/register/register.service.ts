@@ -1,30 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import * as path from 'path';
-import { readFile } from 'fs/promises';
 
 @Injectable()
 export class RegisterService {
-//  constructor() {
-//    this.initializeFirebase();
-//  }
-//
-//  // Firebaseの初期化処理
-//  private async initializeFirebase() {
-//    try {
-//      if (admin.apps.length === 0) {
-//        const serviceAccountPath = path.resolve(__dirname, '../../serviceAccountKey.json');
-//        const serviceAccount = JSON.parse(await readFile(serviceAccountPath, 'utf-8'));
-//
-//        admin.initializeApp({
-//          credential: admin.credential.cert(serviceAccount),
-//        });
-//      }
-//    } catch (error) {
-//      throw new Error(`Firebase initialization error: ${error.message}`);
-//    }
-//  }
-
   private async getNextIdForTopic(topic: string): Promise<number> {
     const db = admin.firestore();
     const docRef = db.collection('topicCounters').doc(topic); // トピックごとのカウンタ用ドキュメント
@@ -71,7 +49,7 @@ export class RegisterService {
 
       // データをマップとして作成
       const data = {
-        [`${category}_${uniqueId}`]: {
+        [`${category}${uniqueId}`]: {
           date,
           title,
           body,

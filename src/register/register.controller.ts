@@ -1,9 +1,10 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { RegisterService } from './register.service';
+import { NotificationsService } from './../notifications/notifications.service';
 
 @Controller('register')
 export class RegisterController {
-  constructor(private readonly inboxService: RegisterService) {}
+  constructor(private readonly inboxService: RegisterService, private readonly notificationsService: NotificationsService) {}
 
   @Post('data')
   async registerDataWithReceivedData(
@@ -13,7 +14,6 @@ export class RegisterController {
     @Body('image') image: string
   ) {
     try {
-      // category によって処理を変える 商品と店舗
       const response = await this.inboxService.registerFirebase(category, title, body, image);
       return { success: true, message: response };
     } catch (error) {
@@ -30,6 +30,8 @@ export class RegisterController {
   ) {
     try {
       const response = await this.inboxService.registerInbox(topic, title, body, image);
+      await this.notificationsService.sendWholeNotification(topic, title, body);
+
       return { success: true, message: response };
     } catch (error) {
       return { success: false, message: error.message };

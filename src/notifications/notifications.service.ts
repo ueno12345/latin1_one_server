@@ -32,7 +32,6 @@ export class NotificationsService {
     topic: string,
     title: string,
     body: string,
-    data: Record<string, string>
   ): Promise<string> {
     try {
       const message: admin.messaging.Message = {
@@ -40,7 +39,6 @@ export class NotificationsService {
           title,
           body,
         },
-        data,
         topic: topic,
       };
 
@@ -55,7 +53,6 @@ export class NotificationsService {
     token: string,
     title: string,
     body: string,
-    data: Record<string, string>
   ): Promise<string> {
     try {
       const message: admin.messaging.Message = {
@@ -63,7 +60,6 @@ export class NotificationsService {
           title,
           body,
         },
-        data,
         token: token,
       };
 
