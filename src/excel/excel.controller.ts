@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Res, UseInterceptors, UploadedFile, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Res, UseInterceptors, UploadedFile, HttpException, HttpStatus } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ExcelService } from './excel.service';
 import { Response } from 'express';
@@ -7,10 +7,19 @@ import { Response } from 'express';
 export class ExcelController {
   constructor(private readonly excelService: ExcelService) {}
 
-  @Get('download')
-  async downloadExcel(@Res() res: Response) {
-    console.log('ダウンロードリクエストを受信しました'); // ログ追加
-    await this.excelService.generateExcelFile(res);
+  @Post('download')
+  async downloadExcel(
+    @Body() body: { dataType: 'shop' | 'product' },
+    @Res() res: Response,
+  ) {
+    const { dataType } = body;
+
+    if (!dataType) {
+      throw new HttpException('データの種類が指定されていません', HttpStatus.BAD_REQUEST);
+    }
+
+    console.log(`ダウンロードリクエストを受信しました - データの種類: ${dataType}`);
+    await this.excelService.generateExcelFile(res, dataType);
   }
 
   @Post('upload')
