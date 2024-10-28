@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import * as admin from 'firebase-admin';
+import { admin } from '@config/firebase';
 
 @Injectable()
 export class RegisterService {
@@ -93,5 +93,60 @@ export class RegisterService {
     } catch (error) {
       console.error('Error adding data:', error);
     }
+  }
+
+  async registerToFirestore(Data: any[]): Promise<void> {
+    const firestore = admin.firestore();
+    const batch = firestore.batch(); // バッチを作成
+
+    for (const item of Data) {
+      const hasProductData = item.shopName && item.productName && item.description && item.price !== undefined && item.productType && item.category && item.countryOfOrigin && item.imagePath;
+      const hasShopData = item.shopName && item.address && item.phone && item.postalCode && item.openTime && item.closeTime && item.latitude !== undefined && item.longitude !== undefined;
+
+      if (hasShopData) {
+        const shop = {
+          shopName: item.shopName,
+          address: item.address,
+          phone: item.phone,
+          postalCode: item.postalCode,
+          openTime: item.openTime,
+          closeTime: item.closeTime,
+          latitude: item.latitude,
+          longitude: item.longitude,
+        };
+  
+        const shopId = `shop${item.shopName}`; // 店舗名を使ってIDを生成
+        const shopRef = firestore.collection('shops-test').doc(shopId);
+        batch.set(shopRef, shop);
+  
+      } else if (hasProductData) {
+        const product = {
+          shopName: item.shopName,
+          productName: item.productName,
+          description: item.description,
+          price: item.price,
+          productType: item.productType,
+          category: item.category,
+          countryOfOrigin: item.countryOfOrigin,
+          imagePath: item.imagePath,
+        };
+  
+        const shopQuerySnapshot = await firestore.collection('shops-test').where('shopName', '==', item.shopName).get();
+  
+        if (!shopQuerySnapshot.empty) {
+          shopQuerySnapshot.forEach((shopDoc) => {
+            const shopId = shopDoc.id; // 店舗のIDを取得
+            const productRef = firestore.collection('shops-test').doc(shopId).collection('products').doc(); // 自動生成されたID
+            batch.set(productRef, product);
+          });
+        } else {
+          console.log(`商品を登録したい店舗が存在しません: ${item.shopName}`);
+        }
+      } else {
+        console.log(`データが不完全です:`, item);
+      }
+    }
+    // バッチをコミット
+    await batch.commit();
   }
 }
