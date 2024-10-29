@@ -114,11 +114,10 @@ export class RegisterService {
           latitude: item.latitude,
           longitude: item.longitude,
         };
-  
-        const shopId = `shop${item.shopName}`; // 店舗名を使ってIDを生成
-        const shopRef = firestore.collection('shops-test').doc(shopId);
+
+        const shopRef = firestore.collection('shops-test').doc(item.shopName);
         batch.set(shopRef, shop);
-  
+
       } else if (hasProductData) {
         const product = {
           shopName: item.shopName,
@@ -130,13 +129,12 @@ export class RegisterService {
           countryOfOrigin: item.countryOfOrigin,
           imagePath: item.imagePath,
         };
-  
+
         const shopQuerySnapshot = await firestore.collection('shops-test').where('shopName', '==', item.shopName).get();
-  
+
         if (!shopQuerySnapshot.empty) {
           shopQuerySnapshot.forEach((shopDoc) => {
-            const shopId = shopDoc.id; // 店舗のIDを取得
-            const productRef = firestore.collection('shops-test').doc(shopId).collection('products').doc(); // 自動生成されたID
+            const productRef = firestore.collection('shops-test').doc(shopDoc.id).collection('products').doc(item.productName); // 自動生成されたID
             batch.set(productRef, product);
           });
         } else {

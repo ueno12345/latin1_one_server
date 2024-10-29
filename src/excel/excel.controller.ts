@@ -41,6 +41,7 @@ export class ExcelController {
         const Data = await this.excelService.parseExcel(tempFilePath); // 解析
         console.log('登録処理中です・・・');
         await this.registerService.registerToFirestore(Data); // 登録
+        console.log('登録が完了しました');
       } catch (error) {
         console.error('Error during Excel processing:', error);
         // エラーが発生した場合は、一時ファイルを削除
