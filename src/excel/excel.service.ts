@@ -59,7 +59,7 @@ export class ExcelService {
           price: item.data.price,
           productType: item.data.productType,
           category: item.data.category,
-          country: item.data.country,
+          countryOfOrigin: item.data.countryOfOrigin,
           imagePath: item.data.imagePath,
         });
       });

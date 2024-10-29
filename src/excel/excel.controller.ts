@@ -34,7 +34,6 @@ export class ExcelController {
         await this.excelService.generateExcelFile(res, dataType, data); // ここを修正
       } else if (dataType === 'product') {
         const data = await this.acquireService.getDataFromFirebase("shops", "JAVANICAN", "products");
-        console.log(data)
         if (!data) {
           throw new HttpException('データが見つかりません', HttpStatus.NOT_FOUND);
         }
@@ -81,6 +80,7 @@ export class ExcelController {
         const Data = await this.excelService.parseExcel(tempFilePath);
         console.log('登録処理中です・・・');
         await this.registerService.registerToFirestore(Data);
+        console.log('登録が完了しました');
       } catch (error) {
         console.error('Error during Excel processing:', error);
         // エラーが発生した場合は一時ファイルを削除

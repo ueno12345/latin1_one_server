@@ -139,7 +139,6 @@ export class RegisterService {
             const productRef = firestore.collection('shops').doc(shopDoc.id).collection('products').doc(item.productName);
             batch.set(productRef, product);
           });
-          console.log('登録が完了しました')
         } else {
           console.log(`商品を登録したい店舗が存在しません: ${item.shopName}`);
         }
