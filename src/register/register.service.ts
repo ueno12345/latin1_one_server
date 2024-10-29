@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { admin } from '@config/firebase';
+import { GeoPoint } from '@google-cloud/firestore';
 
 @Injectable()
 export class RegisterService {
@@ -101,18 +102,19 @@ export class RegisterService {
 
     for (const item of Data) {
       const hasProductData = item.shopName && item.productName && item.description && item.price !== undefined && item.productType && item.category && item.countryOfOrigin && item.imagePath;
-      const hasShopData = item.shopName && item.address && item.phone && item.postalCode && item.openTime && item.closeTime && item.latitude !== undefined && item.longitude !== undefined;
+      const hasShopData = item.shopName && item.address && item.phoneNumber && item.postalCode && item.openTime && item.closeTime && item.latitude !== undefined && item.longitude !== undefined;
 
       if (hasShopData) {
         const shop = {
           shopName: item.shopName,
           address: item.address,
-          phone: item.phone,
+          phoneNumber: item.phoneNumber,
           postalCode: item.postalCode,
-          openTime: item.openTime,
-          closeTime: item.closeTime,
-          latitude: item.latitude,
-          longitude: item.longitude,
+          geopoint: new GeoPoint(item.latitude, item.longitude),
+          businessHours: {
+            openTime: item.openTime,
+            closeTime: item.closeTime,
+          },
         };
 
         const shopRef = firestore.collection('shops').doc(item.shopName);
@@ -134,9 +136,10 @@ export class RegisterService {
 
         if (!shopQuerySnapshot.empty) {
           shopQuerySnapshot.forEach((shopDoc) => {
-            const productRef = firestore.collection('shops').doc(shopDoc.id).collection('products').doc(item.productName); // 自動生成されたID
+            const productRef = firestore.collection('shops').doc(shopDoc.id).collection('products').doc(item.productName);
             batch.set(productRef, product);
           });
+          console.log('登録が完了しました')
         } else {
           console.log(`商品を登録したい店舗が存在しません: ${item.shopName}`);
         }

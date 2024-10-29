@@ -3,42 +3,55 @@ import { admin } from '@config/firebase';
 
 @Injectable()
 export class AcquireService {
-  async getNestedDataFromFirebase(
+  async getDataFromFirebase(
     collectionId: string,
-    documentId: string,
-    subCollectionId?: string,
-    subDocumentId?: string
-  ): Promise<any | undefined> {
+    documentId?: string,
+    subCollectionId?: string
+  ): Promise<any[]> {
     const db = admin.firestore();
-
     try {
-      // 最初のコレクションとドキュメントを取得
-      const docRef = db.collection(collectionId).doc(documentId);
-      const docSnapshot = await docRef.get();
+      // 結果を格納する配列
+      const result = [];
 
-      if (!docSnapshot.exists) {
-        console.log(`Document ${documentId} does not exist in collection ${collectionId}`);
-        return undefined;
-      }
-
-      // サブドキュメントが指定されている場合
-      if (subCollectionId && subDocumentId) {
-        const subDocRef = docRef.collection(subCollectionId).doc(subDocumentId);
-        const subDocSnapshot = await subDocRef.get();
-
-        if (subDocSnapshot.exists) {
-          return subDocSnapshot.data(); // サブドキュメントのデータを返す
-        } else {
-          console.log(`Sub-document ${subDocumentId} does not exist in sub-collection ${subCollectionId}`);
-          return undefined;
+      if (documentId && subCollectionId) {
+        // collectionId + documentId + subCollectionId が指定された場合
+        const subCollectionSnapshot = await db
+          .collection(collectionId)
+          .doc(documentId)
+          .collection(subCollectionId)
+          .get();
+  
+        if (subCollectionSnapshot.empty) {
+          console.log(`サブコレクション ${subCollectionId} は存在しません (ドキュメントID: ${documentId})`);
+          return [];
         }
+  
+        // サブコレクション内のすべてのドキュメントを取得
+        subCollectionSnapshot.forEach((subDoc) => {
+          result.push({ subDocumentId: subDoc.id, data: subDoc.data() });
+        });
+      } else if (collectionId && !documentId && !subCollectionId) {
+        // collectionId のみが指定された場合
+        const collectionSnapshot = await db.collection(collectionId).get();
+  
+        if (collectionSnapshot.empty) {
+          console.log(`コレクション ${collectionId} は存在しません`);
+          return [];
+        }
+  
+        // コレクション内のすべてのドキュメントを取得
+        collectionSnapshot.forEach((doc) => {
+          result.push({ documentId: doc.id, data: doc.data() });
+        });
+      } else {
+        console.log('無効なパラメータです。collectionId または collectionId + documentId + subCollectionId のみ指定してください。');
+        return [];
       }
-
-      // subCollectionId または subDocumentId がない場合、最上位のドキュメントデータを返す
-      return docSnapshot.data();
+  
+      return result;
     } catch (error) {
-      console.error('Error retrieving nested data:', error);
-      throw new Error(`Failed to retrieve nested data: ${error.message}`);
+      console.error('データ取得中にエラーが発生しました:', error);
+      throw new Error(`データ取得に失敗しました: ${error.message}`);
     }
   }
 }

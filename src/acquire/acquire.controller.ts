@@ -16,7 +16,10 @@ export class AcquireController {
     }
 
     try {
-      const result = await this.acquireService.getNestedDataFromFirebase(collectionId, documentId, subCollectionId, subDocumentId);
+    //  const data = await this.acquireService.getDataFromFirebase(collectionId);
+
+      const result = await this.acquireService.getDataFromFirebase(collectionId, documentId, subCollectionId);
+
       return { success: true, data: result };
     } catch (error) {
       console.error("Error in AcquireService:", error);

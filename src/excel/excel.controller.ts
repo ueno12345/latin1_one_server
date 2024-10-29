@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Res, UseInterceptors, UploadedFile, HttpException, HttpStatus } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ExcelService } from './excel.service';
+import { AcquireService } from './../acquire/acquire.service';
 import { RegisterService } from './../register/register.service';
 import { Response } from 'express';
 import * as fs from 'fs';
@@ -8,7 +9,7 @@ import * as path from 'path';
 
 @Controller('excel')
 export class ExcelController {
-  constructor(private readonly excelService: ExcelService, private readonly registerService: RegisterService) {}
+  constructor(private readonly excelService: ExcelService, private readonly acquireService: AcquireService, private readonly registerService: RegisterService) {}
 
   @Post('download')
   async downloadExcel(
@@ -20,10 +21,45 @@ export class ExcelController {
     if (!dataType) {
       throw new HttpException('データの種類が指定されていません', HttpStatus.BAD_REQUEST);
     }
-
     console.log(`ダウンロードリクエストを受信しました - データの種類: ${dataType}`);
-    await this.excelService.generateExcelFile(res, dataType);
+
+    try {
+      if (dataType === 'shop') {
+        // Firebaseからデータを取得
+        const data = await this.acquireService.getDataFromFirebase("shops");
+        // データが見つからない場合の処理
+        if (!data) {
+          throw new HttpException('データが見つかりません', HttpStatus.NOT_FOUND);
+        }
+        await this.excelService.generateExcelFile(res, dataType, data); // ここを修正
+      } else if (dataType === 'product') {
+        const data = await this.acquireService.getDataFromFirebase("shops", "JAVANICAN", "products");
+        console.log(data)
+        if (!data) {
+          throw new HttpException('データが見つかりません', HttpStatus.NOT_FOUND);
+        }
+        await this.excelService.generateExcelFile(res, dataType, data); // ここはそのまま
+      } else {
+        throw new HttpException('不正なデータ形式です', HttpStatus.BAD_REQUEST);
+      }
+    } catch (error) {
+      console.error('Error during downloadExcel:', error);
+      throw new HttpException(`エラーが発生しました: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
+//  async downloadExcel(
+//    @Body() body: { dataType: 'shop' | 'product' },
+//    @Res() res: Response,
+//  ) {
+//    const { dataType } = body;
+//
+//    if (!dataType) {
+//      throw new HttpException('データの種類が指定されていません', HttpStatus.BAD_REQUEST);
+//    }
+//
+//    console.log(`ダウンロードリクエストを受信しました - データの種類: ${dataType}`);
+//    await this.excelService.generateExcelFile(res, dataType);
+//  }
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
@@ -45,7 +81,6 @@ export class ExcelController {
         const Data = await this.excelService.parseExcel(tempFilePath);
         console.log('登録処理中です・・・');
         await this.registerService.registerToFirestore(Data);
-        console.log('登録が完了しました');
       } catch (error) {
         console.error('Error during Excel processing:', error);
         // エラーが発生した場合は一時ファイルを削除
