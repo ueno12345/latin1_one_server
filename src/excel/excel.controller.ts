@@ -28,34 +28,36 @@ export class ExcelController {
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    console.log('ファイルアップロードリクエストを受信しました'); // ログ追加
+    console.log('ファイルアップロードリクエストを受信しました');
     if (file) {
       console.log('アップロードされたファイル:', file.originalname);
-
-      // アップロードされたファイルを一時的に保存
-      const tempFilePath = path.join(__dirname, '..', '..', 'uploads', file.originalname); // ファイル名を追加
-      fs.writeFileSync(tempFilePath, file.buffer); // bufferからファイルを作成
-
+      // アップロードされたファイルをuploadsディレクトリに保存
+      const uploadsDir = path.join(__dirname, '..', '..', 'uploads'); // 保存先ディレクトリ
+      const tempFilePath = path.join(uploadsDir, file.originalname);
+      // uploadsディレクトリが存在しない場合は作成
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      // ファイルを保存
+      fs.writeFileSync(tempFilePath, file.buffer);
       try {
         // Excelファイルを解析してFirestoreに登録
-        const Data = await this.excelService.parseExcel(tempFilePath); // 解析
+        const Data = await this.excelService.parseExcel(tempFilePath);
         console.log('登録処理中です・・・');
-        await this.registerService.registerToFirestore(Data); // 登録
+        await this.registerService.registerToFirestore(Data);
         console.log('登録が完了しました');
       } catch (error) {
         console.error('Error during Excel processing:', error);
-        // エラーが発生した場合は、一時ファイルを削除
+        // エラーが発生した場合は一時ファイルを削除
         fs.unlinkSync(tempFilePath);
         return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Excelの処理中にエラーが発生しました' };
       }
-
-      // 一時ファイルを削除
-      try {
-        fs.unlinkSync(tempFilePath);
-      } catch (error) {
-        console.error('Error deleting temporary file:', error);
-      }
-
+//      // 一時ファイルを削除
+//      try {
+//        fs.unlinkSync(tempFilePath);
+//      } catch (error) {
+//        console.error('Error deleting temporary file:', error);
+//      }
       return { statusCode: HttpStatus.OK, message: 'ファイルアップロード成功' };
     } else {
       console.error('ファイルがアップロードされていません');

@@ -115,7 +115,7 @@ export class RegisterService {
           longitude: item.longitude,
         };
 
-        const shopRef = firestore.collection('shops-test').doc(item.shopName);
+        const shopRef = firestore.collection('shops').doc(item.shopName);
         batch.set(shopRef, shop);
 
       } else if (hasProductData) {
@@ -130,11 +130,11 @@ export class RegisterService {
           imagePath: item.imagePath,
         };
 
-        const shopQuerySnapshot = await firestore.collection('shops-test').where('shopName', '==', item.shopName).get();
+        const shopQuerySnapshot = await firestore.collection('shops').where('shopName', '==', item.shopName).get();
 
         if (!shopQuerySnapshot.empty) {
           shopQuerySnapshot.forEach((shopDoc) => {
-            const productRef = firestore.collection('shops-test').doc(shopDoc.id).collection('products').doc(item.productName); // 自動生成されたID
+            const productRef = firestore.collection('shops').doc(shopDoc.id).collection('products').doc(item.productName); // 自動生成されたID
             batch.set(productRef, product);
           });
         } else {
