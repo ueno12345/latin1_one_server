@@ -60,43 +60,48 @@ export class ExcelController {
 //    await this.excelService.generateExcelFile(res, dataType);
 //  }
 
-  @Post('upload')
+@Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     console.log('ファイルアップロードリクエストを受信しました');
-    if (file) {
-      console.log('アップロードされたファイル:', file.originalname);
-      // アップロードされたファイルをuploadsディレクトリに保存
-      const uploadsDir = path.join(__dirname, '..', '..', 'uploads'); // 保存先ディレクトリ
-      const tempFilePath = path.join(uploadsDir, file.originalname);
-      // uploadsディレクトリが存在しない場合は作成
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-      // ファイルを保存
-      fs.writeFileSync(tempFilePath, file.buffer);
-      try {
-        // Excelファイルを解析してFirestoreに登録
-        const Data = await this.excelService.parseExcel(tempFilePath);
-        console.log('登録処理中です・・・');
-        await this.registerService.registerToFirestore(Data);
-        console.log('登録が完了しました');
-      } catch (error) {
-        console.error('Error during Excel processing:', error);
-        // エラーが発生した場合は一時ファイルを削除
-        fs.unlinkSync(tempFilePath);
-        return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Excelの処理中にエラーが発生しました' };
-      }
-//      // 一時ファイルを削除
-//      try {
-//        fs.unlinkSync(tempFilePath);
-//      } catch (error) {
-//        console.error('Error deleting temporary file:', error);
-//      }
-      return { statusCode: HttpStatus.OK, message: 'ファイルアップロード成功' };
-    } else {
+
+    if (!file) {
       console.error('ファイルがアップロードされていません');
       return { statusCode: HttpStatus.BAD_REQUEST, message: 'ファイルがアップロードされていません' };
     }
+
+    console.log('アップロードされたファイル:', file.originalname);
+
+    // アップロードされたファイルをuploadsディレクトリに保存
+    const uploadsDir = path.join(__dirname, '..', '..', 'uploads');
+    const tempFilePath = path.join(uploadsDir, file.originalname);
+
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    // ファイルを保存
+    fs.writeFileSync(tempFilePath, file.buffer);
+
+    try {
+      // Excelファイルを解析してFirestoreに登録
+      const Data = await this.excelService.parseExcel(tempFilePath);
+      console.log('登録処理中です・・・');
+      await this.registerService.registerToFirestore(Data);
+      console.log('登録が完了しました');
+    } catch (error) {
+      console.error('Excelの処理中にエラーが発生しました:', error);
+      fs.unlinkSync(tempFilePath); // エラー発生時は一時ファイルを削除
+      return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Excelの処理中にエラーが発生しました' };
+    }
+
+//    // 処理後のファイル削除
+//    try {
+//      fs.unlinkSync(tempFilePath);
+//    } catch (error) {
+//      console.error('一時ファイルの削除中にエラーが発生しました:', error);
+//    }
+
+    return { statusCode: HttpStatus.OK, message: 'ファイルのアップロードに成功しました' };
   }
 }
