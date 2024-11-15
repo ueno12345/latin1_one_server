@@ -94,7 +94,19 @@ export class ExcelService {
     const data = [];
 
     // ヘッダー行を取得
-    const headers = worksheet.getRow(1).values as string[];
+    const rowValues = worksheet.getRow(1).values;
+    const headers = Array.isArray(rowValues)
+        ? rowValues.map(header => {
+            if (header && typeof header === 'object' && 'richText' in header) {
+                // リッチテキストの場合、テキスト部分を抽出
+                return header.richText.map((part: any) => part.text).join('');
+            } else if (typeof header === 'string') {
+                // 通常の文字列の場合、そのまま使用
+                return header.trim();
+            }
+            return ''; // header が null か予期しない型の場合は空文字
+        })
+        : [];
 
    // 店舗データか商品データかを判断
     const hasShopColumns = headers.includes('店舗名') && headers.includes('住所') && headers.includes('電話番号') && headers.includes('郵便番号') && headers.includes('開店時間(OPEN)') && headers.includes('閉店時間(CLOSE)') && headers.includes('緯度') && headers.includes('経度');
@@ -106,8 +118,28 @@ export class ExcelService {
       // 商品データを処理
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1) return; // ヘッダー行をスキップ
-        const [, shopName, productName, description, price, productType, category, countryOfOrigin, imagePath] = row.values as any[];
-
+    
+        // row.valuesの内容を確認
+        console.log('Row values:', row.values);
+    
+        // 空要素を除外して値を取得
+        const values = Object.values(row.values)
+          .map((cell: any) => {
+            if (cell && cell.richText) {
+              // richTextがある場合、text部分のみを結合して取得
+              return cell.richText.map((part: any) => part.text).join('');
+            }
+            return cell; // richTextでなければそのまま
+          })
+          .filter(cell => cell !== undefined && cell !== null);  // 空のセルを除外
+    
+        // 取得した値を適切な変数に割り当て
+        const [shopName, productName, description, price, productType, category, countryOfOrigin, imagePath] = values;
+    
+        // データが空でないか確認
+        console.log('Processed values:', values);
+    
+        // 商品データを格納
         data.push({
           shopName: shopName as string,
           productName: productName as string,
@@ -123,8 +155,28 @@ export class ExcelService {
       // 店舗データを処理
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1) return; // ヘッダー行をスキップ
-        const [, shopName, address, phoneNumber, postalCode, openTime, closeTime, latitude, longitude] = row.values as any[];
-
+    
+        // row.valuesの内容を確認
+        console.log('Row values:', row.values);
+    
+        // 空要素を除外して値を取得
+        const values = Object.values(row.values)
+          .map((cell: any) => {
+            if (cell && cell.richText) {
+              // richTextの各部分からtextを取り出して結合
+              return cell.richText.map((part: any) => part.text).join('');
+            }
+            return cell; // richTextでなければそのまま
+          })
+          .filter(cell => cell !== undefined && cell !== null);  // 空のセルを除外
+    
+        // 取得した値を適切な変数に割り当て
+        const [shopName, address, phoneNumber, postalCode, openTime, closeTime, latitude, longitude] = values;
+    
+        // データが空でないか確認
+        console.log('Processed values:', values);
+    
+        // 店舗データを格納
         data.push({
           shopName: shopName as string,
           address: address as string,
@@ -136,7 +188,8 @@ export class ExcelService {
           longitude: longitude as number,
         });
       });
-    } else {
+    }
+     else {
       throw new Error('不明なデータ形式です。店舗データまたは商品データを含む必要があります。');
     }
 

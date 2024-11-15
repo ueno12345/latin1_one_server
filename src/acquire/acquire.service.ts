@@ -3,6 +3,22 @@ import { admin } from '@config/firebase';
 
 @Injectable()
 export class AcquireService {
+//  private convertToPlainText(data: any): any {
+//    const convertedData: any = {};
+//
+//    for (const [key, value] of Object.entries(data || {})) {
+//      if (value && value.richText) {
+//        // リッチテキストがある場合、テキスト部分だけを取得
+//        convertedData[key] = value.richText.map((part: any) => part.text).join('');
+//      } else {
+//        // プレーンテキストの場合はそのまま使用
+//        convertedData[key] = value;
+//      }
+//    }
+//
+//    return convertedData;
+//  }
+
   async getDataFromFirebase(
     collectionId: string,
     documentId?: string,
@@ -43,6 +59,10 @@ export class AcquireService {
         collectionSnapshot.forEach((doc) => {
           result.push({ documentId: doc.id, data: doc.data() });
         });
+//        collectionSnapshot.forEach((doc) => {
+//          const data = this.convertToPlainText(doc.data());
+//          result.push({ documentId: doc.id, data });
+//        });
       } else {
         console.log('無効なパラメータです。collectionId または collectionId + documentId + subCollectionId のみ指定してください。');
         return [];
