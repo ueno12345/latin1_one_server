@@ -36,42 +36,82 @@ export class AcquireService {
           .doc(documentId)
           .collection(subCollectionId)
           .get();
-  
+
         if (subCollectionSnapshot.empty) {
           console.log(`サブコレクション ${subCollectionId} は存在しません (ドキュメントID: ${documentId})`);
           return [];
         }
-  
+
         // サブコレクション内のすべてのドキュメントを取得
         subCollectionSnapshot.forEach((subDoc) => {
           result.push({ subDocumentId: subDoc.id, data: subDoc.data() });
         });
+      } else if (documentId && !subCollectionId) {
+        // collectionId + documentId のみが指定された場合
+        const documentSnapshot = await db
+          .collection(collectionId)
+          .doc(documentId)
+          .get();
+
+        if (!documentSnapshot.exists) {
+          console.log(`ドキュメント ${documentId} は存在しません (コレクション: ${collectionId})`);
+          return [];
+        }
+
+        // 指定されたドキュメントのデータを取得
+        result.push({ documentId: documentSnapshot.id, data: documentSnapshot.data() });
       } else if (collectionId && !documentId && !subCollectionId) {
         // collectionId のみが指定された場合
         const collectionSnapshot = await db.collection(collectionId).get();
-  
+
         if (collectionSnapshot.empty) {
           console.log(`コレクション ${collectionId} は存在しません`);
           return [];
         }
-  
+
         // コレクション内のすべてのドキュメントを取得
         collectionSnapshot.forEach((doc) => {
           result.push({ documentId: doc.id, data: doc.data() });
         });
-//        collectionSnapshot.forEach((doc) => {
-//          const data = this.convertToPlainText(doc.data());
-//          result.push({ documentId: doc.id, data });
-//        });
       } else {
         console.log('無効なパラメータです。collectionId または collectionId + documentId + subCollectionId のみ指定してください。');
         return [];
       }
-  
       return result;
     } catch (error) {
       console.error('データ取得中にエラーが発生しました:', error);
       throw new Error(`データ取得に失敗しました: ${error.message}`);
     }
+  }
+  // UNIXタイムスタンプを整形する関数
+  private formatTimestamp(seconds: number): string {
+    const date = new Date(seconds * 1000);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}年${month}月${day}日${hours}時${minutes}分`;
+  }
+
+  // データを平坦化する関数
+  flattenData(data: any[]): any[] {
+    return data.flatMap((doc) => {
+      return Object.values(doc.data || {}).map((order: any) => {
+        if (order['配送状況'] === false) {
+          const formattedOrderItems = order['注文商品']
+            .map((item: any) => `${item.name}×${item.pieces}`)
+            .join('，');
+          const formattedTotal = `${order['注文合計']}円`;
+          return {
+            ...order,
+            '注文商品': formattedOrderItems,
+            '注文合計': formattedTotal,
+            'order-time': this.formatTimestamp(order['order-time']._seconds),
+          };
+        }
+        return {};
+      }).filter(order => Object.keys(order).length > 0);
+    });
   }
 }

@@ -118,10 +118,10 @@ export class ExcelService {
       // 商品データを処理
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1) return; // ヘッダー行をスキップ
-    
+
         // row.valuesの内容を確認
         console.log('Row values:', row.values);
-    
+
         // 空要素を除外して値を取得
         const values = Object.values(row.values)
           .map((cell: any) => {
@@ -132,13 +132,13 @@ export class ExcelService {
             return cell; // richTextでなければそのまま
           })
           .filter(cell => cell !== undefined && cell !== null);  // 空のセルを除外
-    
+
         // 取得した値を適切な変数に割り当て
         const [shopName, productName, description, price, productType, category, countryOfOrigin, imagePath] = values;
-    
+
         // データが空でないか確認
         console.log('Processed values:', values);
-    
+
         // 商品データを格納
         data.push({
           shopName: shopName as string,
@@ -155,10 +155,10 @@ export class ExcelService {
       // 店舗データを処理
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1) return; // ヘッダー行をスキップ
-    
+
         // row.valuesの内容を確認
         console.log('Row values:', row.values);
-    
+
         // 空要素を除外して値を取得
         const values = Object.values(row.values)
           .map((cell: any) => {
@@ -169,13 +169,13 @@ export class ExcelService {
             return cell; // richTextでなければそのまま
           })
           .filter(cell => cell !== undefined && cell !== null);  // 空のセルを除外
-    
+
         // 取得した値を適切な変数に割り当て
         const [shopName, address, phoneNumber, postalCode, openTime, closeTime, latitude, longitude] = values;
-    
+
         // データが空でないか確認
         console.log('Processed values:', values);
-    
+
         // 店舗データを格納
         data.push({
           shopName: shopName as string,
@@ -188,8 +188,7 @@ export class ExcelService {
           longitude: longitude as number,
         });
       });
-    }
-     else {
+    } else {
       throw new Error('不明なデータ形式です。店舗データまたは商品データを含む必要があります。');
     }
 

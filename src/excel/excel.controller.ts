@@ -60,7 +60,7 @@ export class ExcelController {
 //    await this.excelService.generateExcelFile(res, dataType);
 //  }
 
-@Post('upload')
+  @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     console.log('ファイルアップロードリクエストを受信しました');
@@ -94,14 +94,6 @@ export class ExcelController {
       fs.unlinkSync(tempFilePath); // エラー発生時は一時ファイルを削除
       return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Excelの処理中にエラーが発生しました' };
     }
-
-//    // 処理後のファイル削除
-//    try {
-//      fs.unlinkSync(tempFilePath);
-//    } catch (error) {
-//      console.error('一時ファイルの削除中にエラーが発生しました:', error);
-//    }
-
     return { statusCode: HttpStatus.OK, message: 'ファイルのアップロードに成功しました' };
   }
 }

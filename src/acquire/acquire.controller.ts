@@ -16,11 +16,30 @@ export class AcquireController {
     }
 
     try {
-    //  const data = await this.acquireService.getDataFromFirebase(collectionId);
-
       const result = await this.acquireService.getDataFromFirebase(collectionId, documentId, subCollectionId);
 
       return { success: true, data: result };
+    } catch (error) {
+      console.error("Error in AcquireService:", error);
+      return { success: false, message: error.message };
+    }
+  }
+
+  @Post('order')
+  async getOrderData(
+    @Body() body: { shop: string;}
+  ): Promise<any> {
+    const { shop } = body;
+
+    if (!shop) {
+      throw new HttpException('店舗情報 が不足しています', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      const result = await this.acquireService.getDataFromFirebase("order", shop);
+      const data = await this.acquireService.flattenData(result);
+
+      return { success: true, data: data };
     } catch (error) {
       console.error("Error in AcquireService:", error);
       return { success: false, message: error.message };
