@@ -15,6 +15,10 @@ latin1_one_server is the backend server for the order management system.
 
 # Preparation
 1. Set up [latin1_one_server](https://github.com:ueno12345/latin1_one_server.git)
+2. Prepare `serviceAccountKey.json` for firebase
+   ```bash
+   $ vim serviceAccountKey.json
+   ```
 
 # Launch
 1. Execute `npm install`
