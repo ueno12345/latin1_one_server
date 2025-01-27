@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { NotificationsController } from './notifications/notifications.controller';
@@ -10,7 +12,12 @@ import { ExcelController } from './excel/excel.controller';
 import { AcquireController } from './acquire/acquire.controller';
 import { AcquireService } from './acquire/acquire.service';
 @Module({
-  imports: [],
+  imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public', 'build'),
+      serveRoot: '/',
+    }),
+  ],
   controllers: [AppController, NotificationsController, RegisterController, ExcelController, AcquireController],
   providers: [AppService, NotificationsService, RegisterService, ExcelService, AcquireService],
 })
