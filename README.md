@@ -1,4 +1,4 @@
-# latin1_one_client
+# latin1_one_server
 latin1_one_server is part of an order management system.<br>
 latin1_one_server is a tool used in combination with [latin1_one_client](https://github.com:ueno12345/latin1_one_client.git).<br>
 latin1_one_server is the backend server for the order management system.
@@ -8,7 +8,7 @@ latin1_one_server is the backend server for the order management system.
 
 # Setup
 ## latin1_one_server
-1. Download modernTimes
+1. Download latin1_one_server
    ```bash
    $ git clone https://github.com:ueno12345/latin1_one_server.git
    ```
@@ -29,6 +29,8 @@ latin1_one_server is the backend server for the order management system.
    ```bash
    $ npm start
    ```
+After launching, open http://localhost:4000 in your browser to open the latin_one_client screen
+
 
 # ExcelController
 The `ExcelController` provides endpoints for managing Excel files, including downloading data from Firebase as Excel files and uploading Excel files to parse and register data in Firestore.
@@ -45,7 +47,7 @@ Generates and downloads an Excel file based on the specified data type (`shop` o
   }
 - **Example**:
   ```bash
-  curl -X POST http://localhost:3000/excel/download \
+  curl -X POST http://localhost:4000/excel/download \
   -H "Content-Type: application/json" \
   -d '{"dataType": "shop"}'
 ### 2. `POST /excel/upload`
@@ -59,7 +61,7 @@ This endpoint allows users to upload Excel files. The uploaded file is saved on 
 
 - **Example**:
   ```bash
-  curl -X POST http://localhost:3000/excel/upload \
+  curl -X POST http://localhost:4000/excel/upload \
   -F "file=@path/to/your/file.xlsx"
 
 # RegisterController
@@ -81,7 +83,7 @@ Registers general data (category, title, body, and image) to Firebase.
   }
 - **Example**:
   ```bash
-  curl -X POST http://localhost:3000/register/data \
+  curl -X POST http://localhost:4000/register/data \
   -H "Content-Type: application/json" \
   -d '{
     "category": "news",
@@ -103,7 +105,29 @@ Registers inbox data (topic, title, body, and image) to Firebase and sends a not
   }'
 - **Example**:
   ```bash
-  curl -X POST http://localhost:3000/register/inbox \
+  curl -X POST http://localhost:4000/register/inbox \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "updates",
+    "title": "Important Announcement",
+    "body": "Please check the new updates.",
+    "image": "https://example.com/announcement.png"
+    }'
+### 3. `POST /register/updateDeliveryStatus`
+#### Description
+Update Delivery Status and send a notification to purchaser.
+#### Request
+- **Body**:
+  ```json
+  {
+    "token": "string",
+    "product": "string",
+    "timestamp": "string",
+    "newStatus": "boolean"
+  }'
+- **Example**:
+  ```bash
+  curl -X POST http://localhost:4000/register/inbox \
   -H "Content-Type: application/json" \
   -d '{
     "topic": "updates",
@@ -129,7 +153,7 @@ Fetches nested data from Firebase based on the provided collection, document, an
   }
 - **Example**:
   ```bash
-  curl -X POST http://localhost:3000/acquire/data \
+  curl -X POST http://localhost:4000/acquire/data \
   -H "Content-Type: application/json" \
   -d '{
     "collectionId": "shops",
@@ -147,7 +171,7 @@ Fetches order data for a specified shop from Firebase and flattens the nested da
   }'
 - **Example**:
   ```bash
-  curl -X POST http://localhost:3000/acquire/order \
+  curl -X POST http://localhost:4000/acquire/order \
   -H "Content-Type: application/json" \
   -d '{
     "shop": "ShopExample"
