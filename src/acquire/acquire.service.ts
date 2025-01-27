@@ -84,14 +84,15 @@ export class AcquireService {
     }
   }
   // UNIXタイムスタンプを整形する関数
-  private formatTimestamp(seconds: number): string {
-    const date = new Date(seconds * 1000);
+  private formatTimestamp(sec: number): string {
+    const date = new Date(sec * 1000);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}年${month}月${day}日${hours}時${minutes}分`;
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}年${month}月${day}日${hours}時${minutes}分${seconds}秒`;
   }
 
   // データを平坦化する関数
@@ -108,6 +109,7 @@ export class AcquireService {
             '注文商品': formattedOrderItems,
             '注文合計': formattedTotal,
             'order-time': this.formatTimestamp(order['order-time']._seconds),
+            'token': order['token'] || '',
           };
         }
         return {};

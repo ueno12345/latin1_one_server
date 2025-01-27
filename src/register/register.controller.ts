@@ -4,7 +4,7 @@ import { NotificationsService } from './../notifications/notifications.service';
 
 @Controller('register')
 export class RegisterController {
-  constructor(private readonly inboxService: RegisterService, private readonly notificationsService: NotificationsService) {}
+  constructor(private readonly registerService: RegisterService,　private readonly inboxService: RegisterService, private readonly notificationsService: NotificationsService) {}
 
   @Post('data')
   async registerDataWithReceivedData(
@@ -35,6 +35,21 @@ export class RegisterController {
       return { success: true, message: response };
     } catch (error) {
       return { success: false, message: error.message };
+    }
+  }
+  @Post('updateDeliveryStatus')
+  async updateDeliveryStatus(
+    @Body('token') token: string,
+    @Body('product') product: string,
+    @Body('timestamp') timestamp: string,
+    @Body('newStatus') newStatus: boolean
+  ) {
+    try {
+      await this.registerService.updateDeliveryStatus(token, timestamp, newStatus);
+      await this.notificationsService.sendIndividualNotification(token, "商品配送のお知らせ", product+"を配送中です");
+      return { success: true, message: "配送状況が更新されました" };
+    } catch (error) {
+      return { success: false, message: `エラー: ${error.message}` };
     }
   }
 }
